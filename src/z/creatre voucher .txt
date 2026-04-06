@@ -1,0 +1,7 @@
+{
+    "restaurantId": 1,
+    "voucherCode": "100tk",
+    "percent":50,
+    "maxDiscount":100,
+    "minOrderAmount":100
+}

@@ -1,0 +1,14 @@
+http://localhost:3000/restaurant/restaurants
+
+{
+    "name": "Testing",
+    "email": "1234567@gnail.com",
+    "password": "123456",
+    "description": "nai",
+    "address": "nai",
+    "isOpen": false,
+    "currentCommissionPercent":0,
+    "currentDeliveryFee":0,
+    "bkashAccount": "+8801000000000",
+    "bankAccount":"243434231234"
+}

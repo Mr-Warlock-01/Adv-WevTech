@@ -1,0 +1,8 @@
+
+http://localhost:3000/restaurant/restaurants/category
+
+{
+    "name": "Pizza",
+    "isAvailable": true,
+    "restaurantId": 2
+}

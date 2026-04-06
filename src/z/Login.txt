@@ -1,0 +1,6 @@
+http://localhost:3000/auth/login
+
+{
+    "email": "123456@gnail.com",
+    "password": "123456"
+}
