@@ -1,6 +1,6 @@
-import Footer from "@/component/footer";
-import Header from "@/component/header";
-import Sidebar from "@/component/sidebar";
+import Footer from "@/component/restaurants/footer";
+import Header from "@/component/restaurants/header";
+import Sidebar from "@/component/restaurants/sidebar";
 
 
 export default async function Dashboard({params}: {params: { name: string }}){

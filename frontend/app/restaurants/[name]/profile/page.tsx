@@ -2,38 +2,45 @@
 
 import { useState, use } from "react";
 import { z } from "zod";
-import Footer from "@/component/footer";
-import Header from "@/component/header";
-import Sidebar from "@/component/sidebar";
+import Footer from "@/component/restaurants/footer";
+import Header from "@/component/restaurants/header";
+import Sidebar from "@/component/restaurants/sidebar";
 import { 
   Power, Mail, Store, Image as ImageIcon, Info, 
   MapPin, CreditCard, Smartphone, Save, Lock, AlertCircle 
 } from 'lucide-react';
+import { FormField } from "@/component/restaurants/form_field";
 
-// Zod Schemas
+
 const profileSchema = z.object({
   restaurantName: z.string()
-    .min(1, "Name is required.")
+    .nonempty("Name is required.")
     .max(45, "Max 45 characters allowed."),
+  
   email: z.string()
-    .min(1, "Email is required.")
+    .nonempty("Email is required.")
     .email("Invalid email format.")
     .max(30, "Max 30 characters allowed."),
+
   bannerUrl: z.string().optional(),
+
   description: z.string()
     .max(100, "Max 100 characters allowed.")
     .optional(),
+
   address: z.string()
-    .min(1, "Address is required.")
+    .nonempty("Address is required.")
     .max(100, "Max 100 characters allowed."),
-  bkash: z.string().superRefine((val, ctx) => {
-    if (val === "") return; // Optional field
+    
+  bkash: z.string().superRefine((val, ctx) =>{
+    if (val==="") return;
     if (!/^(?:\+88)?01[0-9]{9}$/.test(val)) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Invalid Bangladesh phone number." });
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Invalid phone number." });
     }
   }),
+  
   bankAccount: z.string().superRefine((val, ctx) => {
-    if (val === "") return; // Optional field
+    if (val === "") return;
     if (!/^\d+$/.test(val)) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Must be numeric." });
     } else if (val.length < 10) {
@@ -42,47 +49,19 @@ const profileSchema = z.object({
   })
 });
 
+
 const passwordSchema = z.object({
-  newPassword: z.string().min(6, "Password must be at least 6 characters."),
-  confirmPassword: z.string()
-}).refine((data) => data.newPassword === data.confirmPassword, {
-  message: "Passwords do not match.",
-  path: ["confirmPassword"],
+  newPassword: z.string()
+    .min(6, "Password must be at least 6 characters."),
+
+  confirmPassword: z.string() 
+}).refine((data) =>
+    data.newPassword === data.confirmPassword, {
+      path: ["confirmPassword"],
+      message: "Passwords do not match."
 });
 
-// Reusable Input Component
-const FormField = ({ label, icon: Icon, error, ...props }: any) => (
-  <div className="space-y-2">
-    <label className="flex items-center gap-2 text-sm font-semibold text-slate-700">
-      {Icon && <Icon size={16} className={error ? "text-red-400" : "text-slate-400"} />}
-      {label}
-    </label>
-    {props.type === "textarea" ? (
-      <textarea 
-        {...props} 
-        className={`w-full border rounded-xl px-4 py-3 text-slate-700 transition-all outline-none resize-none ${
-          error 
-            ? "border-red-500 focus:ring-4 focus:ring-red-500/10" 
-            : "border-slate-200 focus:ring-4 focus:ring-pink-500/10 focus:border-[#f82c77]"
-        }`}
-      />
-    ) : (
-      <input 
-        {...props} 
-        className={`w-full border rounded-xl px-4 py-3 text-slate-700 transition-all outline-none ${
-          error 
-            ? "border-red-500 focus:ring-4 focus:ring-red-500/10" 
-            : "border-slate-200 focus:ring-4 focus:ring-pink-500/10 focus:border-[#f82c77]"
-        }`}
-      />
-    )}
-    {error && (
-      <p className="text-red-500 text-xs flex items-center gap-1 mt-1">
-        <AlertCircle size={12} /> {error}
-      </p>
-    )}
-  </div>
-);
+///////////////////////////////////////////////////////////////////////////////
 
 export default function Profile({ params }: { params: Promise<{ name: string }>}){
   const { name } = use(params);
@@ -239,7 +218,7 @@ export default function Profile({ params }: { params: Promise<{ name: string }>}
                     <FormField label="New Password" type="password" name="newPassword" value={formData.newPassword} onChange={handleChange} error={errors.newPassword} />
                     <FormField label="Confirm Password" type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} error={errors.confirmPassword} />
                   </div>
-                  <button type="submit" className="w-full sm:w-auto px-8 bg-slate-900 hover:bg-black text-white py-3.5 rounded-xl font-semibold transition-all">
+                   <button type="submit" className="w-full bg-slate-900 hover:bg-black text-white px-8   py-4 rounded-xl font-bold flex justify-center items-center gap-2 transition-all shadow-lg active:scale-[0.98]">
                     Update Password
                   </button>
                 </form>
