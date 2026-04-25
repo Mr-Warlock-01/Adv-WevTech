@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, use } from "react";
+import { z } from "zod";
 import Footer from "@/component/footer";
 import Header from "@/component/header";
 import Sidebar from "@/component/sidebar";
@@ -9,7 +10,47 @@ import {
   MapPin, CreditCard, Smartphone, Save, Lock, AlertCircle 
 } from 'lucide-react';
 
-// Updated Reusable Input Component with Error Handling
+// Zod Schemas
+const profileSchema = z.object({
+  restaurantName: z.string()
+    .min(1, "Name is required.")
+    .max(45, "Max 45 characters allowed."),
+  email: z.string()
+    .min(1, "Email is required.")
+    .email("Invalid email format.")
+    .max(30, "Max 30 characters allowed."),
+  bannerUrl: z.string().optional(),
+  description: z.string()
+    .max(100, "Max 100 characters allowed.")
+    .optional(),
+  address: z.string()
+    .min(1, "Address is required.")
+    .max(100, "Max 100 characters allowed."),
+  bkash: z.string().superRefine((val, ctx) => {
+    if (val === "") return; // Optional field
+    if (!/^(?:\+88)?01[0-9]{9}$/.test(val)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Invalid Bangladesh phone number." });
+    }
+  }),
+  bankAccount: z.string().superRefine((val, ctx) => {
+    if (val === "") return; // Optional field
+    if (!/^\d+$/.test(val)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Must be numeric." });
+    } else if (val.length < 10) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Minimum 10 digits required." });
+    }
+  })
+});
+
+const passwordSchema = z.object({
+  newPassword: z.string().min(6, "Password must be at least 6 characters."),
+  confirmPassword: z.string()
+}).refine((data) => data.newPassword === data.confirmPassword, {
+  message: "Passwords do not match.",
+  path: ["confirmPassword"],
+});
+
+// Reusable Input Component
 const FormField = ({ label, icon: Icon, error, ...props }: any) => (
   <div className="space-y-2">
     <label className="flex items-center gap-2 text-sm font-semibold text-slate-700">
@@ -65,76 +106,63 @@ export default function Profile({ params }: { params: Promise<{ name: string }>}
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    if (errors[name]) setErrors(prev => ({ ...prev, [name]: "" }));
+    // Clear error for the field being typed in
+    if (errors[name]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
   };
 
   const validateProfile = (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  let newErrors: Record<string, string> = {};
-    setErrors(newErrors);
-  // name
-  if (!formData.restaurantName.trim()) {
-    newErrors.restaurantName = "Name is required.";
-  } else if (formData.restaurantName.length > 45) {
-    newErrors.restaurantName = "Max 45 characters allowed.";
-  }
+    // Clear previous profile-related errors before validating
+    const currentErrors = { ...errors };
+    const profileFields = ["restaurantName", "email", "bannerUrl", "description", "address", "bkash", "bankAccount"];
+    profileFields.forEach(field => delete currentErrors[field]);
 
-  // email
-  if (!formData.email) {
-    newErrors.email = "Email is required.";
-  } else if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
-    newErrors.email = "Invalid email format.";
-  } else if (formData.email.length > 30) {
-    newErrors.email = "Max 30 characters allowed.";
-  }
+    const result = profileSchema.safeParse(formData);
 
-  // description (optional)
-  if (formData.description && formData.description.length > 100) {
-    newErrors.description = "Max 100 characters allowed.";
-  }
-
-  // address
-  if (!formData.address.trim()) {
-    newErrors.address = "Address is required.";
-  } else if (formData.address.length > 100) {
-    newErrors.address = "Max 100 characters allowed.";
-  }
-
-  // bkash (optional)
-  if (
-    formData.bkash &&
-    !/^(?:\+88)?01[0-9]{9}$/.test(formData.bkash)
-  ) {
-    newErrors.bkash = "Invalid Bangladesh phone number.";
-  }
-
-  // bank account (optional)
-  if (formData.bankAccount) {
-    if (!/^\d+$/.test(formData.bankAccount)) {
-      newErrors.bankAccount = "Must be numeric.";
-    } else if (formData.bankAccount.length < 10) {
-      newErrors.bankAccount = "Minimum 10 digits required.";
+    if (!result.success) {
+      // Changed .errors to .issues and explicitly typed 'err' as z.ZodIssue
+      result.error.issues.forEach((err: z.ZodIssue) => {
+        const key = err.path[0] as string;
+        if (!currentErrors[key]) {
+          currentErrors[key] = err.message; 
+        }
+      });
+      setErrors(currentErrors);
+    } else {
+      setErrors(currentErrors);
+      alert("Profile updated successfully!");
     }
-  }
-
-
-  if (Object.keys(newErrors).length === 0) {
-    alert("Profile updated successfully!");
-  }
-};
+  };
 
   const validatePassword = (e: React.FormEvent) => {
     e.preventDefault();
-    let passErrors: Record<string, string> = {};
+    
+    // Clear previous password-related errors before validating
+    const currentErrors = { ...errors };
+    ["newPassword", "confirmPassword"].forEach(field => delete currentErrors[field]);
 
-    if (formData.newPassword.length < 6) passErrors.newPassword = "Password must be at least 6 characters.";
-    if (formData.newPassword !== formData.confirmPassword) {
-      passErrors.confirmPassword = "Passwords do not match.";
-    }
+    const result = passwordSchema.safeParse(formData);
 
-    setErrors(prev => ({ ...prev, ...passErrors }));
-    if (Object.keys(passErrors).length === 0) {
+    if (!result.success) {
+      // Changed .errors to .issues and explicitly typed 'err' as z.ZodIssue
+      result.error.issues.forEach((err: z.ZodIssue) => {
+        const key = err.path[0] as string;
+        if (!currentErrors[key]) {
+          currentErrors[key] = err.message;
+        }
+      });
+      setErrors(currentErrors);
+    } else {
+      setErrors(currentErrors);
+      // Reset password fields on success
+      setFormData(prev => ({ ...prev, newPassword: "", confirmPassword: "" }));
       alert("Password changed successfully!");
     }
   };
@@ -185,7 +213,7 @@ export default function Profile({ params }: { params: Promise<{ name: string }>}
                     </div>
 
                     <FormField label="Banner Image URL" icon={ImageIcon} name="bannerUrl" value={formData.bannerUrl} onChange={handleChange} />
-                    <FormField label="Restaurant Description" icon={Info} type="textarea" name="description" rows={3} value={formData.description} onChange={handleChange} />
+                    <FormField label="Restaurant Description" icon={Info} type="textarea" name="description" rows={3} value={formData.description} onChange={handleChange} error={errors.description} />
                     <FormField label="Restaurant Address" icon={MapPin} name="address" value={formData.address} onChange={handleChange} error={errors.address} />
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-slate-50 rounded-2xl">
