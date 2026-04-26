@@ -1,25 +1,27 @@
+"use client";
+
 import Footer from "@/component/restaurants/footer";
 import Header from "@/component/restaurants/header";
 import Sidebar from "@/component/restaurants/sidebar";
+import { use } from "react";
 
 
-export default async function Dashboard({params}: {params: { name: string }}){
-  const { name } = await params;
-  const displayName = decodeURIComponent(name);
+export default function Menu({ params }: { params: Promise<{ user_id: string }>}){
+  const { user_id } = use(params);
+  const displayName = "PizzaBurg"; //fetch name from params and decode it for display
     return (
     <>
-      <Header name={displayName} />
-    
+      <Header user_id={user_id} name={displayName} /> 
       <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
         
         
         <div className="flex flex-1">
           <aside className="w-64 hidden md:block bg-white border-r border-slate-200">
-            <Sidebar name={displayName} />
+            <Sidebar user_id={user_id} />
           </aside>
           
           <main className="flex-1 p-8 md:p-12 overflow-y-auto">
-              <h1>Dashboard</h1>
+              <h1>Menu</h1>
           </main>
         </div>
         

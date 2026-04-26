@@ -63,15 +63,15 @@ const passwordSchema = z.object({
 
 ///////////////////////////////////////////////////////////////////////////////
 
-export default function Profile({ params }: { params: Promise<{ name: string }>}){
-  const { name } = use(params);
-  const displayName = decodeURIComponent(name);
+export default function Profile({ params }: { params: Promise<{ user_id: string }>}){
+  const { user_id } = use(params);
+  const displayName = "PizzaBurg"; //fetch name from params and decode it for display
   
   const [isOpen, setIsOpen] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   
   const [formData, setFormData] = useState({
-    email: "xxx@gmail.com",
+    email: "",
     restaurantName: displayName,
     bannerUrl: "",
     description: "",
@@ -148,11 +148,11 @@ export default function Profile({ params }: { params: Promise<{ name: string }>}
 
   return (
     <>
-    <Header name={displayName} />
+    <Header user_id={user_id} name={displayName}/>
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans">   
       <div className="flex flex-1">
         <aside className="w-64 hidden md:block bg-white border-r border-slate-200">
-          <Sidebar name={displayName} />
+          <Sidebar user_id={user_id} />
         </aside>
         
         <main className="flex-1 p-8 md:p-12 overflow-y-auto">

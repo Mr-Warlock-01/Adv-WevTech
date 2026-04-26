@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { LogOut, User } from "lucide-react";
 
-export default function Header({ name }: { name: string }) {
+export default function Header({ user_id, name }: { user_id: string; name: string }) {
   return (
     <header className="flex justify-between items-center px-10 py-3 border-b border-gray-100">
       <div className="logo">
@@ -11,7 +11,7 @@ export default function Header({ name }: { name: string }) {
 
       <div className="right flex items-center">
         <Link
-          href={`/restaurants/${name}/profile`}
+          href={`/restaurants/${user_id}/profile`}
           className="text-gray-600 flex items-center font-medium hover:text-pink-500 transition"
         >
           <User size={18} />
